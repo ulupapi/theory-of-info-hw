@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DES Crypto Lab</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">Crypto laboratory</p>
+        <h1>DES: 16 раундов Фейстеля</h1>
+        <p>Учебная лаборатория показывает полный цикл DES: начальную перестановку, генерацию подключей, расширение E, XOR, S-box, перестановку P, swap и финальную перестановку.</p>
+      </div>
+      <div class="status-grid">
+        <div class="status"><strong id="modeBadge">ENC</strong><span>режим</span></div>
+        <div class="status"><strong>64</strong><span>бит блок</span></div>
+        <div class="status"><strong>16</strong><span>раундов</span></div>
+      </div>
+    </header>
+
+    <nav class="tabs" aria-label="Разделы DES">
+      <button class="tab active" data-tab="encrypt">Шифрование</button>
+      <button class="tab" data-tab="decrypt">Дешифрование</button>
+      <button class="tab" data-tab="learn">Обучение / шаг за шагом</button>
+    </nav>
+
+    <section class="layout">
+      <aside>
+        <section class="panel">
+          <div class="panel-body">
+            <h2>Входные данные</h2>
+            <div class="field">
+              <label for="inputMode">Формат блока</label>
+              <select id="inputMode">
+                <option value="hex">Hex, 16 символов</option>
+                <option value="bin">Binary, 64 бита</option>
+                <option value="ascii">ASCII, 8 символов</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="dataInput" id="dataLabel">Открытый текст</label>
+              <textarea id="dataInput" class="mono" spellcheck="false">0123456789ABCDEF</textarea>
+              <p class="hint">Если данных меньше 64 бит, приложение дополняет блок нулями. Лишние биты отсекаются.</p>
+            </div>
+            <div class="field">
+              <label for="keyMode">Формат ключа</label>
+              <select id="keyMode">
+                <option value="hex">Hex, 16 символов</option>
+                <option value="bin">Binary, 64 бита</option>
+                <option value="ascii">ASCII, 8 символов</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="keyInput">64-битный ключ</label>
+              <input id="keyInput" class="mono" spellcheck="false" value="133457799BBCDFF1">
+            </div>
+            <div class="button-row">
+              <button id="runBtn" class="primary">Запустить DES</button>
+              <button id="vectorBtn" class="secondary">Тест-вектор</button>
+              <button id="weakBtn" class="danger">Слабый ключ</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-body">
+            <h2>Ключ</h2>
+            <div id="keyStatus" class="hint">Проверка появится после запуска.</div>
+            <div id="parityGrid" class="bit-grid"></div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-body">
+            <h2>Brute force</h2>
+            <p class="hint">DES имеет эффективную длину ключа 56 бит: 8 бит из 64 используются для контроля чётности.</p>
+            <dl class="readout">
+              <dt>2^56 операций при ~10^9 ключей/сек</dt>
+              <dd id="bruteForce" class="mono">-</dd>
+            </dl>
+          </div>
+        </section>
+      </aside>
+
+      <section>
+        <section class="panel">
+          <div class="panel-body">
+            <h2 id="resultTitle">Результат шифрования</h2>
+            <div class="output-grid">
+              <dl class="readout">
+                <dt>Hex</dt>
+                <dd id="outHex" class="mono">-</dd>
+              </dl>
+              <dl class="readout">
+                <dt>Binary</dt>
+                <dd id="outBin" class="mono">-</dd>
+              </dl>
+              <dl class="readout">
+                <dt>ASCII</dt>
+                <dd id="outAscii" class="mono">-</dd>
+              </dl>
+              <dl class="readout">
+                <dt>IP(block)</dt>
+                <dd id="outIp" class="mono">-</dd>
+              </dl>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" id="learnPanel">
+          <div class="round-nav">
+            <strong id="roundLabel">Раунд 1</strong>
+            <input id="roundRange" type="range" min="1" max="16" value="1">
+            <button id="prevRound" class="secondary">Назад</button>
+            <button id="nextRound" class="secondary">Вперёд</button>
+          </div>
+          <div class="panel-body">
+            <h2>Пошаговая визуализация</h2>
+            <p class="hint">
+              Наведите на термины:
+              <span class="tip" title="IP перемешивает 64 бита входного блока по фиксированной таблице.">IP</span>,
+              <span class="tip" title="E расширяет правую половину с 32 до 48 бит, чтобы выполнить XOR с подключом.">E</span>,
+              <span class="tip" title="S-box сжимает 48 бит до 32: каждый блок 6 бит выбирает строку и столбец таблицы.">S-box</span>,
+              <span class="tip" title="P переставляет 32 бита после S-box, распределяя влияние по следующему раунду.">P</span>,
+              <span class="tip" title="PC-1 отбрасывает биты чётности ключа и формирует C0/D0.">PC-1</span>,
+              <span class="tip" title="PC-2 сжимает C/D после циклических сдвигов до 48-битного подключа.">PC-2</span>.
+            </p>
+            <div class="trace-grid">
+              <div class="trace-card"><span>Lᵢ вход</span><code id="lIn" class="mono">-</code></div>
+              <div class="trace-card"><span>Rᵢ вход</span><code id="rIn" class="mono">-</code></div>
+              <div class="trace-card"><span>Kᵢ подключ</span><code id="kRound" class="mono">-</code></div>
+              <div class="trace-card"><span>E(Rᵢ)</span><code id="expanded" class="mono">-</code></div>
+              <div class="trace-card"><span>E(Rᵢ) XOR Kᵢ</span><code id="xored" class="mono">-</code></div>
+              <div class="trace-card"><span>S-box output</span><code id="sboxBits" class="mono">-</code></div>
+              <div class="trace-card"><span>P(S)</span><code id="pBits" class="mono">-</code></div>
+              <div class="trace-card"><span>Lᵢ₊₁ / Rᵢ₊₁</span><code id="nextLR" class="mono">-</code></div>
+            </div>
+            <h3 style="margin-top: 18px;">Изменение правой половины</h3>
+            <div id="roundBits" class="bit-grid"></div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-body">
+            <h2>Активные S-box</h2>
+            <div id="sboxes" class="trace-grid"></div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-body">
+            <h2>Все 16 подключей</h2>
+            <div id="subkeys" class="subkeys"></div>
+          </div>
+        </section>
+      </section>
+    </section>
+  </main>
+
+  <script type="module" src="ui.js"></script>
+</body>
+</html>

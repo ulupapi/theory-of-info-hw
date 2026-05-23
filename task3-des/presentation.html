@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Презентация: DES Crypto Lab</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/theme/black.css">
+  <style>
+    :root { --r-main-font: Inter, system-ui, sans-serif; --r-heading-font: Inter, system-ui, sans-serif; --r-link-color: #22d3ee; }
+    .reveal { background: radial-gradient(circle at 15% 10%, rgba(34,211,238,.2), transparent 28rem), #080b12; }
+    .reveal h1, .reveal h2, .reveal h3 { letter-spacing: 0; text-transform: none; }
+    .reveal h1 { font-size: 2.7em; }
+    .reveal h2 { color: #e0f2fe; font-size: 1.65em; }
+    .reveal p, .reveal li { color: #cbd5e1; line-height: 1.35; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; align-items: stretch; }
+    .card { border: 1px solid rgba(148,163,184,.25); border-radius: 18px; background: rgba(15,23,42,.82); padding: 24px; text-align: left; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+    .accent { color: #22d3ee; }
+    .tag { display: inline-block; border: 1px solid rgba(34,211,238,.45); border-radius: 999px; padding: 6px 10px; color: #cffafe; font-size: .52em; }
+    .mock { border-radius: 16px; border: 1px solid rgba(148,163,184,.35); background: #0f172a; padding: 16px; box-shadow: 0 24px 70px rgba(0,0,0,.36); }
+    .bar { height: 12px; border-radius: 999px; background: linear-gradient(90deg, #22d3ee, #34d399); margin: 10px 0; }
+    .bits { display: grid; grid-template-columns: repeat(16, 1fr); gap: 4px; margin-top: 14px; }
+    .bit { height: 22px; border-radius: 5px; background: rgba(34,211,238,.18); border: 1px solid rgba(34,211,238,.42); }
+    .bit:nth-child(3n) { background: rgba(245,158,11,.3); border-color: rgba(245,158,11,.55); }
+    .small { font-size: .68em; }
+    @media print { .reveal .slides section { height: 700px; } }
+  </style>
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+      <section>
+        <p class="tag">Теория информации и протоколы безопасного обмена данными</p>
+        <h1>DES Crypto Lab</h1>
+        <p>Интерактивная демонстрация шифрования, дешифрования и пошагового разбора DES</p>
+        <p class="small">Автор: [ФИО] · Курс: ТиПБОД</p>
+      </section>
+
+      <section>
+        <h2>Постановка задачи</h2>
+        <div class="grid">
+          <div class="card">
+            <h3>Что такое DES</h3>
+            <p>DES шифрует 64-битные блоки с эффективным 56-битным ключом и 16 раундами сети Фейстеля.</p>
+          </div>
+          <div class="card">
+            <h3>Зачем изучать</h3>
+            <p>Алгоритм устарел для защиты реальных данных, но остаётся классической моделью блочного шифра, раундовых ключей и S-box.</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Архитектура ПО</h2>
+        <div class="grid">
+          <div class="card">
+            <ul>
+              <li><span class="accent">index.html</span> — интерфейс лаборатории</li>
+              <li><span class="accent">des.js</span> — таблицы DES и криптоядро</li>
+              <li><span class="accent">ui.js</span> — связывает ввод, трассу и визуализацию</li>
+              <li><span class="accent">styles.css</span> — тёмная тема и битовые блоки</li>
+            </ul>
+          </div>
+          <div class="mock">
+            <p class="mono small">input → normalize64 → IP → 16 rounds → FP</p>
+            <div class="bar"></div>
+            <p class="mono small">key → PC-1 → shifts → PC-2 → K1...K16</p>
+            <div class="bar"></div>
+            <p class="mono small">trace → round viewer → S-box highlight</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Математическая основа</h2>
+        <div class="card">
+          <p class="mono">Lᵢ₊₁ = Rᵢ</p>
+          <p class="mono">Rᵢ₊₁ = Lᵢ XOR F(Rᵢ, Kᵢ)</p>
+          <p>Функция F расширяет R до 48 бит, смешивает с подключом, пропускает результат через 8 S-box и перестановку P.</p>
+          <div class="bits bits64"></div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Сценарии использования</h2>
+        <div class="grid">
+          <div class="card">
+            <h3>Быстрый режим</h3>
+            <p>Ввод 64-битного блока и ключа, мгновенный результат в hex, binary и ASCII.</p>
+          </div>
+          <div class="card">
+            <h3>Обучение</h3>
+            <p>Просмотр каждого раунда, активных S-box, подключей и обратного порядка ключей при дешифровании.</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Демонстрация интерфейса</h2>
+        <div class="mock">
+          <p class="mono small">Key: 133457799BBCDFF1</p>
+          <p class="mono small">Plain: 0123456789ABCDEF</p>
+          <div class="bar"></div>
+          <p class="mono">Cipher: <span class="accent">85E813540F0AB405</span></p>
+          <div class="bits bits64"></div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Заключение</h2>
+        <div class="card">
+          <p>Приложение показывает DES как работающий блочный шифр и как учебную модель: один и тот же ключ шифрует и дешифрует блок, а пошаговая трасса объясняет внутреннюю механику.</p>
+          <p>Ссылка на развёрнутое приложение: <span class="accent">[GitHub Pages URL]</span></p>
+        </div>
+      </section>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.js"></script>
+  <script>
+    document.querySelectorAll(".bits64").forEach(node => {
+      node.innerHTML = Array.from({ length: 64 }, () => "<div class='bit'></div>").join("");
+    });
+    Reveal.initialize({ hash: true, slideNumber: true, transition: "fade" });
+  </script>
+</body>
+</html>

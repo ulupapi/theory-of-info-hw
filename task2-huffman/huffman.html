@@ -1,0 +1,564 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Кодирование Хаффмана</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root { color-scheme: light; }
+    body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+    .glass { background: rgba(255,255,255,.86); backdrop-filter: blur(16px); }
+    .tree-node { transition: transform .25s ease, fill .25s ease; }
+    .tree-edge { stroke-dasharray: 620; animation: dash .65s ease both; }
+    @keyframes dash { from { stroke-dashoffset: 620; } to { stroke-dashoffset: 0; } }
+    @media print {
+      .no-print { display: none !important; }
+      body { background: white !important; }
+      .glass { box-shadow: none !important; border: 1px solid #d1d5db; }
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-slate-100 text-slate-900">
+  <main class="mx-auto max-w-7xl px-4 py-6 lg:px-8">
+    <header class="mb-6 flex flex-col gap-4 rounded-2xl bg-gradient-to-r from-slate-950 via-teal-950 to-slate-900 p-6 text-white shadow-xl md:flex-row md:items-end md:justify-between">
+      <div>
+        <p class="text-sm font-semibold uppercase tracking-[0.18em] text-teal-200">Теория информации</p>
+        <h1 class="mt-2 text-3xl font-bold tracking-tight md:text-5xl">Кодирование Хаффмана</h1>
+        <p class="mt-3 max-w-3xl text-sm leading-6 text-slate-200 md:text-base">
+          Интерактивная лабораторная работа: ввод вероятностей, построение дерева, проверка префиксности, метрики и кодирование текста.
+        </p>
+      </div>
+      <div class="grid grid-cols-3 gap-2 text-center text-xs">
+        <div class="rounded-xl bg-white/10 p-3">
+          <div class="text-lg font-bold" id="metricSymbols">0</div>
+          <div class="text-slate-300">символов</div>
+        </div>
+        <div class="rounded-xl bg-white/10 p-3">
+          <div class="text-lg font-bold" id="metricSum">0.000</div>
+          <div class="text-slate-300">сумма p</div>
+        </div>
+        <div class="rounded-xl bg-white/10 p-3">
+          <div class="text-lg font-bold" id="metricStatus">-</div>
+          <div class="text-slate-300">статус</div>
+        </div>
+      </div>
+    </header>
+
+    <section class="grid gap-5 lg:grid-cols-[420px_1fr]">
+      <aside class="space-y-5">
+        <section class="glass rounded-2xl border border-white p-5 shadow-sm">
+          <div class="flex items-center justify-between gap-3">
+            <h2 class="text-xl font-semibold">Алфавит</h2>
+            <button id="clearBtn" class="no-print rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium hover:bg-slate-50">Очистить</button>
+          </div>
+          <div class="mt-4 grid grid-cols-[1fr_1fr_auto] gap-2">
+            <input id="symbolInput" class="rounded-lg border border-slate-300 px-3 py-2 focus:border-teal-600 focus:outline-none" maxlength="3" placeholder="символ">
+            <input id="probInput" class="rounded-lg border border-slate-300 px-3 py-2 focus:border-teal-600 focus:outline-none" type="number" min="0" max="1" step="0.001" placeholder="p">
+            <button id="addBtn" class="rounded-lg bg-teal-700 px-3 py-2 text-sm font-semibold text-white hover:bg-teal-800">Добавить</button>
+          </div>
+          <p id="validationText" class="mt-3 rounded-lg bg-slate-100 px-3 py-2 text-sm text-slate-700">Введите вероятности. Сумма должна быть 1.0 с допуском 0.001.</p>
+          <div id="alphabetRows" class="mt-4 space-y-2"></div>
+          <div class="mt-4 grid grid-cols-3 gap-2">
+            <button data-preset="balanced" class="preset rounded-lg bg-slate-900 px-3 py-2 text-xs font-semibold text-white hover:bg-slate-800">Пример 1</button>
+            <button data-preset="skewed" class="preset rounded-lg bg-slate-900 px-3 py-2 text-xs font-semibold text-white hover:bg-slate-800">Пример 2</button>
+            <button data-preset="russian" class="preset rounded-lg bg-slate-900 px-3 py-2 text-xs font-semibold text-white hover:bg-slate-800">Пример 3</button>
+          </div>
+        </section>
+
+        <section class="glass rounded-2xl border border-white p-5 shadow-sm">
+          <h2 class="text-xl font-semibold">Кодирование текста</h2>
+          <label class="mt-4 block text-sm font-medium text-slate-700" for="plainText">Текст из символов алфавита</label>
+          <textarea id="plainText" class="mono mt-1 h-24 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-teal-600 focus:outline-none" placeholder="например: оеаие"></textarea>
+          <div class="mt-3 flex gap-2">
+            <button id="encodeBtn" class="rounded-lg bg-teal-700 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-800">Кодировать</button>
+            <button id="decodeBtn" class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold hover:bg-slate-50">Декодировать биты</button>
+          </div>
+          <label class="mt-4 block text-sm font-medium text-slate-700" for="bitsText">Битовая строка</label>
+          <textarea id="bitsText" class="mono mt-1 h-24 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-teal-600 focus:outline-none" placeholder="010011..."></textarea>
+          <p id="codecStatus" class="mt-3 text-sm text-slate-600"></p>
+        </section>
+      </aside>
+
+      <section class="space-y-5">
+        <section class="glass overflow-hidden rounded-2xl border border-white shadow-sm">
+          <div class="flex flex-col gap-3 border-b border-slate-200 p-5 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h2 class="text-xl font-semibold">Дерево Хаффмана</h2>
+              <p class="mt-1 text-sm text-slate-600" id="stepDescription">Нажмите «Построить», чтобы увидеть процесс объединения минимальных вероятностей.</p>
+            </div>
+            <div class="no-print flex flex-wrap gap-2">
+              <button id="buildBtn" class="rounded-lg bg-slate-950 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800">Построить</button>
+              <button id="prevStepBtn" class="rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold hover:bg-slate-50">Назад</button>
+              <button id="nextStepBtn" class="rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold hover:bg-slate-50">Шаг вперёд</button>
+              <button id="playBtn" class="rounded-lg border border-teal-700 px-3 py-2 text-sm font-semibold text-teal-800 hover:bg-teal-50">Автопроигрывание</button>
+              <button id="resetStepBtn" class="rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold hover:bg-slate-50">Сброс</button>
+            </div>
+          </div>
+          <div class="overflow-auto bg-white">
+            <svg id="treeSvg" class="min-h-[420px] w-full" role="img" aria-label="Визуализация дерева Хаффмана"></svg>
+          </div>
+        </section>
+
+        <section class="grid gap-5 xl:grid-cols-[1fr_330px]">
+          <div class="glass rounded-2xl border border-white p-5 shadow-sm">
+            <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <h2 class="text-xl font-semibold">Таблица кодов</h2>
+              <div class="no-print flex gap-2">
+                <button id="jsonBtn" class="rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold hover:bg-slate-50">JSON</button>
+                <button id="csvBtn" class="rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold hover:bg-slate-50">CSV</button>
+              </div>
+            </div>
+            <div class="mt-4 overflow-x-auto">
+              <table class="w-full min-w-[560px] text-left text-sm">
+                <thead class="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500">
+                  <tr>
+                    <th class="py-2 pr-3">Символ</th>
+                    <th class="py-2 pr-3">Вероятность</th>
+                    <th class="py-2 pr-3">Код Хаффмана</th>
+                    <th class="py-2 pr-3">Длина</th>
+                    <th class="py-2 pr-3">p × l</th>
+                  </tr>
+                </thead>
+                <tbody id="codesTable" class="divide-y divide-slate-100"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="glass rounded-2xl border border-white p-5 shadow-sm">
+            <h2 class="text-xl font-semibold">Метрики</h2>
+            <dl class="mt-4 space-y-3 text-sm">
+              <div class="rounded-xl bg-slate-50 p-3">
+                <dt class="text-slate-500">Средняя длина L</dt>
+                <dd id="avgLen" class="mono mt-1 text-lg font-bold">-</dd>
+              </div>
+              <div class="rounded-xl bg-slate-50 p-3">
+                <dt class="text-slate-500">Энтропия H</dt>
+                <dd id="entropy" class="mono mt-1 text-lg font-bold">-</dd>
+              </div>
+              <div class="rounded-xl bg-slate-50 p-3">
+                <dt class="text-slate-500">η = L / H</dt>
+                <dd id="redundancy" class="mono mt-1 text-lg font-bold">-</dd>
+              </div>
+              <div class="rounded-xl bg-slate-50 p-3">
+                <dt class="text-slate-500">Равномерный код</dt>
+                <dd id="fixedCode" class="mono mt-1 text-lg font-bold">-</dd>
+              </div>
+              <div class="rounded-xl bg-slate-50 p-3">
+                <dt class="text-slate-500">Префиксность</dt>
+                <dd id="prefixStatus" class="mt-1 font-semibold">-</dd>
+              </div>
+            </dl>
+          </div>
+        </section>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    const presets = {
+      balanced: [
+        { symbol: "A", p: 0.22 }, { symbol: "B", p: 0.20 }, { symbol: "C", p: 0.19 },
+        { symbol: "D", p: 0.21 }, { symbol: "E", p: 0.18 }
+      ],
+      skewed: [
+        { symbol: "a", p: 0.40 }, { symbol: "b", p: 0.20 }, { symbol: "c", p: 0.15 },
+        { symbol: "d", p: 0.10 }, { symbol: "e", p: 0.06 }, { symbol: "f", p: 0.04 },
+        { symbol: "g", p: 0.03 }, { symbol: "h", p: 0.02 }
+      ],
+      russian: [
+        { symbol: "о", p: 0.1640 }, { symbol: "е", p: 0.1263 }, { symbol: "а", p: 0.1198 },
+        { symbol: "и", p: 0.1099 }, { symbol: "н", p: 0.1002 }, { symbol: "т", p: 0.0936 },
+        { symbol: "с", p: 0.0818 }, { symbol: "р", p: 0.0707 }, { symbol: "в", p: 0.0679 },
+        { symbol: "л", p: 0.0658 }
+      ]
+    };
+
+    let alphabet = structuredClone(presets.balanced);
+    let build = null;
+    let stepIndex = 0;
+    let playTimer = null;
+
+    const $ = (id) => document.getElementById(id);
+    const fmt = (n, digits = 4) => Number.isFinite(n) ? n.toFixed(digits) : "-";
+
+    function alphabetSum() {
+      return alphabet.reduce((sum, item) => sum + Number(item.p || 0), 0);
+    }
+
+    function renderAlphabet() {
+      $("metricSymbols").textContent = alphabet.length;
+      $("metricSum").textContent = fmt(alphabetSum(), 3);
+      $("alphabetRows").innerHTML = alphabet.map((item, index) => `
+        <div class="grid grid-cols-[52px_1fr_auto] items-center gap-2 rounded-xl bg-white p-2 shadow-sm">
+          <div class="mono rounded-lg bg-slate-100 px-2 py-2 text-center text-lg font-bold">${escapeHtml(item.symbol)}</div>
+          <input class="probEdit rounded-lg border border-slate-300 px-3 py-2 text-sm" data-index="${index}" type="number" min="0" max="1" step="0.0001" value="${item.p}">
+          <button class="deleteBtn rounded-lg border border-rose-200 px-3 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-50" data-index="${index}">Удалить</button>
+        </div>
+      `).join("");
+      document.querySelectorAll(".probEdit").forEach(input => {
+        input.addEventListener("input", (event) => {
+          alphabet[Number(event.target.dataset.index)].p = Number(event.target.value);
+          build = null;
+          updateValidation();
+          renderMetricsEmpty();
+        });
+      });
+      document.querySelectorAll(".deleteBtn").forEach(button => {
+        button.addEventListener("click", (event) => {
+          alphabet.splice(Number(event.target.dataset.index), 1);
+          build = null;
+          renderAlphabet();
+          renderMetricsEmpty();
+          drawEmptyTree("Символ удалён. Постройте дерево заново.");
+        });
+      });
+      updateValidation();
+    }
+
+    function updateValidation() {
+      const sum = alphabetSum();
+      const duplicate = alphabet.some((item, index) => alphabet.findIndex(other => other.symbol === item.symbol) !== index);
+      const invalidP = alphabet.some(item => !Number.isFinite(item.p) || item.p <= 0 || item.p > 1);
+      const ok = alphabet.length >= 2 && Math.abs(sum - 1) <= 0.001 && !duplicate && !invalidP;
+      $("metricStatus").textContent = ok ? "OK" : "ошибка";
+      $("metricStatus").className = ok ? "text-lg font-bold text-emerald-300" : "text-lg font-bold text-rose-300";
+      $("validationText").textContent = ok
+        ? "Данные корректны: можно строить дерево Хаффмана."
+        : "Проверьте: минимум 2 символа, вероятности > 0, нет дублей, сумма p = 1.0 ± 0.001.";
+      $("validationText").className = ok
+        ? "mt-3 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800"
+        : "mt-3 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-800";
+      return ok;
+    }
+
+    function buildHuffman(items) {
+      let serial = 1;
+      const nodes = items
+        .map(item => ({ id: `n${serial++}`, symbol: item.symbol, p: Number(item.p), left: null, right: null }))
+        .sort(compareNodes);
+      const steps = [{ description: "Начальное состояние: каждый символ является отдельным узлом.", forest: [...nodes], highlight: [] }];
+
+      while (nodes.length > 1) {
+        nodes.sort(compareNodes);
+        const left = nodes.shift();
+        const right = nodes.shift();
+        const parent = {
+          id: `n${serial++}`,
+          symbol: `${left.symbol || ""}${right.symbol || ""}`,
+          p: left.p + right.p,
+          left,
+          right
+        };
+        nodes.push(parent);
+        steps.push({
+          description: `Объединены узлы ${nodeLabel(left)} и ${nodeLabel(right)}: новая вероятность ${fmt(parent.p, 4)}.`,
+          forest: [...nodes].sort(compareNodes),
+          highlight: [left.id, right.id, parent.id]
+        });
+      }
+
+      const root = nodes[0];
+      const codes = {};
+      collectCodes(root, "", codes);
+      return { root, steps, codes };
+    }
+
+    function compareNodes(a, b) {
+      if (Math.abs(a.p - b.p) > 1e-12) return a.p - b.p;
+      return String(a.symbol).localeCompare(String(b.symbol), "ru");
+    }
+
+    function nodeLabel(node) {
+      return node.left || node.right ? `(${fmt(node.p, 4)})` : `${node.symbol} (${fmt(node.p, 4)})`;
+    }
+
+    function collectCodes(node, prefix, codes) {
+      if (!node.left && !node.right) {
+        codes[node.symbol] = prefix || "0";
+        return;
+      }
+      collectCodes(node.left, prefix + "0", codes);
+      collectCodes(node.right, prefix + "1", codes);
+    }
+
+    function isPrefixFree(codes) {
+      const values = Object.values(codes);
+      for (let i = 0; i < values.length; i++) {
+        for (let j = 0; j < values.length; j++) {
+          if (i !== j && values[j].startsWith(values[i])) return false;
+        }
+      }
+      return true;
+    }
+
+    function renderResults() {
+      if (!build) return renderMetricsEmpty();
+      const rows = alphabet
+        .map(item => ({ ...item, code: build.codes[item.symbol], len: build.codes[item.symbol].length }))
+        .sort((a, b) => b.p - a.p);
+      $("codesTable").innerHTML = rows.map(row => `
+        <tr>
+          <td class="mono py-3 pr-3 text-lg font-bold">${escapeHtml(row.symbol)}</td>
+          <td class="mono py-3 pr-3">${fmt(row.p, 4)}</td>
+          <td class="mono py-3 pr-3 text-teal-800">${row.code}</td>
+          <td class="mono py-3 pr-3">${row.len}</td>
+          <td class="mono py-3 pr-3">${fmt(row.p * row.len, 4)}</td>
+        </tr>
+      `).join("");
+
+      const avg = rows.reduce((sum, row) => sum + row.p * row.len, 0);
+      const entropy = rows.reduce((sum, row) => sum - row.p * Math.log2(row.p), 0);
+      const fixedBits = Math.ceil(Math.log2(rows.length));
+      const prefixFree = isPrefixFree(build.codes);
+
+      $("avgLen").textContent = `${fmt(avg, 4)} бит/символ`;
+      $("entropy").textContent = `${fmt(entropy, 4)} бит/символ`;
+      $("redundancy").textContent = `${fmt(avg / entropy, 4)} (${fmt((avg / entropy - 1) * 100, 2)}% сверх H)`;
+      $("fixedCode").textContent = `${fixedBits} бит/символ; экономия ${fmt((1 - avg / fixedBits) * 100, 2)}%`;
+      $("prefixStatus").textContent = prefixFree ? "Выполнено: ни один код не является префиксом другого." : "Нарушено.";
+      $("prefixStatus").className = prefixFree ? "mt-1 font-semibold text-emerald-700" : "mt-1 font-semibold text-rose-700";
+    }
+
+    function renderMetricsEmpty() {
+      $("codesTable").innerHTML = `<tr><td colspan="5" class="py-5 text-center text-slate-500">Постройте дерево, чтобы получить коды.</td></tr>`;
+      ["avgLen", "entropy", "redundancy", "fixedCode", "prefixStatus"].forEach(id => $(id).textContent = "-");
+    }
+
+    function drawTree() {
+      if (!build) return drawEmptyTree("Дерево ещё не построено.");
+      const step = build.steps[stepIndex];
+      $("stepDescription").textContent = `Шаг ${stepIndex}/${build.steps.length - 1}. ${step.description}`;
+      renderForest(step.forest, step.highlight);
+    }
+
+    function renderForest(forest, highlight) {
+      const svg = $("treeSvg");
+      const highlightSet = new Set(highlight);
+      const positioned = [];
+      let nextX = 56;
+      const xGap = 82;
+      const yGap = 84;
+
+      function place(node, depth) {
+        if (!node.left && !node.right) {
+          node._x = nextX;
+          nextX += xGap;
+        } else {
+          place(node.left, depth + 1);
+          place(node.right, depth + 1);
+          node._x = (node.left._x + node.right._x) / 2;
+        }
+        node._y = 52 + depth * yGap;
+        positioned.push(node);
+      }
+
+      forest.forEach(root => {
+        place(root, 0);
+        nextX += 34;
+      });
+
+      const maxDepth = Math.max(1, ...positioned.map(node => Math.round((node._y - 52) / yGap)));
+      const width = Math.max(svg.clientWidth || 760, nextX + 40);
+      const height = Math.max(420, 120 + maxDepth * yGap);
+      svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+      svg.innerHTML = `
+        <defs>
+          <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#0f172a" flood-opacity=".16"/>
+          </filter>
+        </defs>
+      `;
+
+      function edge(parent, child, label) {
+        const midX = (parent._x + child._x) / 2;
+        const midY = (parent._y + child._y) / 2;
+        svg.insertAdjacentHTML("beforeend", `
+          <line class="tree-edge" x1="${parent._x}" y1="${parent._y + 24}" x2="${child._x}" y2="${child._y - 24}" stroke="#94a3b8" stroke-width="2"/>
+          <text x="${midX}" y="${midY - 4}" text-anchor="middle" class="mono" font-size="13" fill="#0f766e" font-weight="700">${label}</text>
+        `);
+      }
+
+      positioned.forEach(node => {
+        if (node.left) edge(node, node.left, "0");
+        if (node.right) edge(node, node.right, "1");
+      });
+
+      positioned.forEach(node => {
+        const leaf = !node.left && !node.right;
+        const fill = highlightSet.has(node.id) ? "#14b8a6" : leaf ? "#f8fafc" : "#0f172a";
+        const stroke = highlightSet.has(node.id) ? "#0f766e" : "#cbd5e1";
+        const text = leaf ? escapeHtml(node.symbol) : fmt(node.p, 3);
+        const sub = leaf ? fmt(node.p, 3) : "sum";
+        svg.insertAdjacentHTML("beforeend", `
+          <g class="tree-node" filter="url(#softShadow)">
+            <circle cx="${node._x}" cy="${node._y}" r="27" fill="${fill}" stroke="${stroke}" stroke-width="2"/>
+            <text x="${node._x}" y="${node._y - 2}" text-anchor="middle" font-size="${leaf ? 18 : 12}" font-weight="800" fill="${leaf || highlightSet.has(node.id) ? "#0f172a" : "#fff"}">${text}</text>
+            <text x="${node._x}" y="${node._y + 15}" text-anchor="middle" class="mono" font-size="10" fill="${leaf || highlightSet.has(node.id) ? "#475569" : "#cbd5e1"}">${sub}</text>
+          </g>
+        `);
+      });
+    }
+
+    function drawEmptyTree(message) {
+      $("stepDescription").textContent = message;
+      $("treeSvg").setAttribute("viewBox", "0 0 900 420");
+      $("treeSvg").innerHTML = `
+        <rect width="900" height="420" fill="#ffffff"/>
+        <text x="450" y="200" text-anchor="middle" fill="#64748b" font-size="18" font-weight="700">${escapeHtml(message)}</text>
+      `;
+    }
+
+    function encodeText() {
+      if (!build) return setCodecStatus("Сначала постройте дерево.", true);
+      const text = $("plainText").value;
+      let bits = "";
+      for (const ch of text) {
+        if (!build.codes[ch]) return setCodecStatus(`Символ «${ch}» отсутствует в алфавите.`, true);
+        bits += build.codes[ch];
+      }
+      $("bitsText").value = bits;
+      setCodecStatus(`Готово: ${text.length} символов превращены в ${bits.length} бит.`);
+    }
+
+    function decodeBits() {
+      if (!build) return setCodecStatus("Сначала постройте дерево.", true);
+      const bits = $("bitsText").value.replace(/\s+/g, "");
+      if (!/^[01]*$/.test(bits)) return setCodecStatus("Битовая строка должна содержать только 0 и 1.", true);
+      let text = "";
+      let node = build.root;
+      for (const bit of bits) {
+        node = bit === "0" ? node.left : node.right;
+        if (!node) return setCodecStatus("Строка не соответствует текущему дереву.", true);
+        if (!node.left && !node.right) {
+          text += node.symbol;
+          node = build.root;
+        }
+      }
+      if (node !== build.root) return setCodecStatus("Строка закончилась в середине кода.", true);
+      $("plainText").value = text;
+      setCodecStatus(`Декодировано: ${text.length} символов.`);
+    }
+
+    function setCodecStatus(message, error = false) {
+      $("codecStatus").textContent = message;
+      $("codecStatus").className = error ? "mt-3 text-sm font-semibold text-rose-700" : "mt-3 text-sm font-semibold text-emerald-700";
+    }
+
+    function download(format) {
+      if (!build) return;
+      const rows = alphabet.map(item => ({
+        symbol: item.symbol,
+        probability: item.p,
+        code: build.codes[item.symbol],
+        length: build.codes[item.symbol].length
+      }));
+      let body;
+      let type;
+      let name;
+      if (format === "json") {
+        body = JSON.stringify({ alphabet: rows, metrics: currentMetrics() }, null, 2);
+        type = "application/json";
+        name = "huffman-results.json";
+      } else {
+        body = "symbol,probability,code,length\n" + rows.map(row => `${row.symbol},${row.probability},${row.code},${row.length}`).join("\n");
+        type = "text/csv";
+        name = "huffman-results.csv";
+      }
+      const blob = new Blob([body], { type });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = name;
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function currentMetrics() {
+      const rows = alphabet.map(item => ({ p: item.p, len: build.codes[item.symbol].length }));
+      const L = rows.reduce((sum, row) => sum + row.p * row.len, 0);
+      const H = rows.reduce((sum, row) => sum - row.p * Math.log2(row.p), 0);
+      return { averageLength: L, entropy: H, ratio: L / H, prefixFree: isPrefixFree(build.codes) };
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
+    }
+
+    $("addBtn").addEventListener("click", () => {
+      const symbol = $("symbolInput").value.trim();
+      const p = Number($("probInput").value);
+      if (!symbol || !Number.isFinite(p)) return;
+      alphabet.push({ symbol, p });
+      $("symbolInput").value = "";
+      $("probInput").value = "";
+      build = null;
+      renderAlphabet();
+      renderMetricsEmpty();
+      drawEmptyTree("Добавлен символ. Постройте дерево заново.");
+    });
+
+    $("clearBtn").addEventListener("click", () => {
+      alphabet = [];
+      build = null;
+      renderAlphabet();
+      renderMetricsEmpty();
+      drawEmptyTree("Алфавит очищен.");
+    });
+
+    document.querySelectorAll(".preset").forEach(button => {
+      button.addEventListener("click", () => {
+        alphabet = structuredClone(presets[button.dataset.preset]);
+        build = null;
+        renderAlphabet();
+        renderMetricsEmpty();
+        drawEmptyTree("Загружен пример. Нажмите «Построить».");
+      });
+    });
+
+    $("buildBtn").addEventListener("click", () => {
+      if (!updateValidation()) return;
+      build = buildHuffman(alphabet);
+      stepIndex = build.steps.length - 1;
+      renderResults();
+      drawTree();
+    });
+
+    $("prevStepBtn").addEventListener("click", () => { if (build) { stepIndex = Math.max(0, stepIndex - 1); drawTree(); } });
+    $("nextStepBtn").addEventListener("click", () => { if (build) { stepIndex = Math.min(build.steps.length - 1, stepIndex + 1); drawTree(); } });
+    $("resetStepBtn").addEventListener("click", () => { if (build) { stepIndex = 0; drawTree(); } });
+    $("playBtn").addEventListener("click", () => {
+      if (!build) return;
+      if (playTimer) {
+        clearInterval(playTimer);
+        playTimer = null;
+        $("playBtn").textContent = "Автопроигрывание";
+        return;
+      }
+      stepIndex = 0;
+      drawTree();
+      $("playBtn").textContent = "Пауза";
+      playTimer = setInterval(() => {
+        if (stepIndex >= build.steps.length - 1) {
+          clearInterval(playTimer);
+          playTimer = null;
+          $("playBtn").textContent = "Автопроигрывание";
+          return;
+        }
+        stepIndex += 1;
+        drawTree();
+      }, 1100);
+    });
+
+    $("encodeBtn").addEventListener("click", encodeText);
+    $("decodeBtn").addEventListener("click", decodeBits);
+    $("jsonBtn").addEventListener("click", () => download("json"));
+    $("csvBtn").addEventListener("click", () => download("csv"));
+
+    renderAlphabet();
+    renderMetricsEmpty();
+    drawEmptyTree("Нажмите «Построить», чтобы увидеть дерево.");
+  </script>
+</body>
+</html>

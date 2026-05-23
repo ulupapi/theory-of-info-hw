@@ -1,0 +1,50 @@
+ЛОКАЛЬНЫЕ ССЫЛКИ ДЛЯ ПРОВЕРКИ НА ЭТОМ КОМПЬЮТЕРЕ
+
+Эссе об ЭЦП:
+file:///Users/ulupapi/Documents/Playground/theory-of-info-hw/task1-eds-essay/essay.html
+
+Приложение Хаффмана:
+file:///Users/ulupapi/Documents/Playground/theory-of-info-hw/task2-huffman/huffman.html
+
+DES Crypto Lab:
+file:///Users/ulupapi/Documents/Playground/theory-of-info-hw/task3-des/index.html
+
+Презентация DES:
+file:///Users/ulupapi/Documents/Playground/theory-of-info-hw/task3-des/presentation.html
+
+
+ПУБЛИЧНЫЕ ССЫЛКИ ПОСЛЕ ПУБЛИКАЦИИ НА GITHUB PAGES
+
+Замени username на имя GitHub-аккаунта:
+
+Эссе об ЭЦП:
+https://username.github.io/theory-of-info-hw/task1-eds-essay/essay.html
+
+Приложение Хаффмана:
+https://username.github.io/theory-of-info-hw/task2-huffman/huffman.html
+
+DES Crypto Lab:
+https://username.github.io/theory-of-info-hw/task3-des/index.html
+
+Презентация DES:
+https://username.github.io/theory-of-info-hw/task3-des/presentation.html
+
+Исходный код:
+https://github.com/username/theory-of-info-hw
+
+
+ШАБЛОН ПИСЬМА
+
+Тема: [ТиПБОД] Домашнее задание — [ФИО]
+
+Уважаемый преподаватель!
+
+Направляю ссылки на результаты выполнения домашнего задания:
+
+Задание 1 (Эссе об ЭЦП): [ссылка]
+Задание 2 (Кодирование Хаффмана): [ссылка на приложение] + [ссылка на демо-видео]
+Задание 3 (Протокол DES): [ссылка на приложение] + [ссылка на презентацию] + [ссылка на демо-видео]
+
+Исходный код: [ссылка на GitHub]
+
+С уважением, [ФИО]
