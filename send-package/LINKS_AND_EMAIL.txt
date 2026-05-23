@@ -13,24 +13,25 @@ file:///Users/ulupapi/Documents/Playground/theory-of-info-hw/task3-des/index.htm
 file:///Users/ulupapi/Documents/Playground/theory-of-info-hw/task3-des/presentation.html
 
 
-ПУБЛИЧНЫЕ ССЫЛКИ ПОСЛЕ ПУБЛИКАЦИИ НА GITHUB PAGES
+ПУБЛИЧНЫЕ ССЫЛКИ GITHUB PAGES
 
-Замени username на имя GitHub-аккаунта:
+Главная страница со всеми материалами:
+https://ulupapi.github.io/theory-of-info-hw/
 
 Эссе об ЭЦП:
-https://username.github.io/theory-of-info-hw/task1-eds-essay/essay.html
+https://ulupapi.github.io/theory-of-info-hw/task1-eds-essay/essay.html
 
 Приложение Хаффмана:
-https://username.github.io/theory-of-info-hw/task2-huffman/huffman.html
+https://ulupapi.github.io/theory-of-info-hw/task2-huffman/huffman.html
 
 DES Crypto Lab:
-https://username.github.io/theory-of-info-hw/task3-des/index.html
+https://ulupapi.github.io/theory-of-info-hw/task3-des/index.html
 
 Презентация DES:
-https://username.github.io/theory-of-info-hw/task3-des/presentation.html
+https://ulupapi.github.io/theory-of-info-hw/task3-des/presentation.html
 
 Исходный код:
-https://github.com/username/theory-of-info-hw
+https://github.com/ulupapi/theory-of-info-hw
 
 
 ШАБЛОН ПИСЬМА
