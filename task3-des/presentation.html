@@ -3,125 +3,193 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Презентация: DES Crypto Lab</title>
+  <title>Презентация: демонстрация DES</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/theme/black.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/theme/white.css">
   <style>
-    :root { --r-main-font: Inter, system-ui, sans-serif; --r-heading-font: Inter, system-ui, sans-serif; --r-link-color: #22d3ee; }
-    .reveal { background: radial-gradient(circle at 15% 10%, rgba(34,211,238,.2), transparent 28rem), #080b12; }
-    .reveal h1, .reveal h2, .reveal h3 { letter-spacing: 0; text-transform: none; }
-    .reveal h1 { font-size: 2.7em; }
-    .reveal h2 { color: #e0f2fe; font-size: 1.65em; }
-    .reveal p, .reveal li { color: #cbd5e1; line-height: 1.35; }
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; align-items: stretch; }
-    .card { border: 1px solid rgba(148,163,184,.25); border-radius: 18px; background: rgba(15,23,42,.82); padding: 24px; text-align: left; }
+    :root {
+      --r-main-font: Inter, Arial, system-ui, sans-serif;
+      --r-heading-font: Inter, Arial, system-ui, sans-serif;
+      --r-main-color: #172033;
+      --r-heading-color: #0f172a;
+      --r-link-color: #0f766e;
+      --r-background-color: #f8fafc;
+    }
+    .reveal h1, .reveal h2, .reveal h3 { letter-spacing: 0; text-transform: none; font-weight: 800; }
+    .reveal h1 { font-size: 2.15em; }
+    .reveal h2 { font-size: 1.45em; margin-bottom: 24px; }
+    .reveal h3 { font-size: .82em; color: #0f766e; margin-bottom: 8px; }
+    .reveal p, .reveal li { line-height: 1.42; }
+    .reveal ul { display: block; margin-left: 1.1em; }
+    .reveal li { margin: .35em 0; }
+    .meta { color: #475569; font-size: .58em; }
+    .tag { display: inline-block; border: 1px solid #99f6e4; background: #ecfdf5; color: #115e59; border-radius: 999px; padding: 7px 12px; font-size: .48em; font-weight: 800; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: stretch; }
+    .card { border: 1px solid #dbe5ef; border-radius: 14px; background: #fff; padding: 22px; text-align: left; box-shadow: 0 12px 30px rgba(15,23,42,.06); }
+    .wide { grid-column: 1 / -1; }
     .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
-    .accent { color: #22d3ee; }
-    .tag { display: inline-block; border: 1px solid rgba(34,211,238,.45); border-radius: 999px; padding: 6px 10px; color: #cffafe; font-size: .52em; }
-    .mock { border-radius: 16px; border: 1px solid rgba(148,163,184,.35); background: #0f172a; padding: 16px; box-shadow: 0 24px 70px rgba(0,0,0,.36); }
-    .bar { height: 12px; border-radius: 999px; background: linear-gradient(90deg, #22d3ee, #34d399); margin: 10px 0; }
-    .bits { display: grid; grid-template-columns: repeat(16, 1fr); gap: 4px; margin-top: 14px; }
-    .bit { height: 22px; border-radius: 5px; background: rgba(34,211,238,.18); border: 1px solid rgba(34,211,238,.42); }
-    .bit:nth-child(3n) { background: rgba(245,158,11,.3); border-color: rgba(245,158,11,.55); }
-    .small { font-size: .68em; }
-    @media print { .reveal .slides section { height: 700px; } }
+    .formula { border-left: 5px solid #0f766e; background: #f0fdfa; padding: 14px 18px; font-size: .78em; }
+    .small { font-size: .58em; color: #475569; }
+    .screenshot { width: 100%; max-height: 410px; object-fit: contain; border: 1px solid #cbd5e1; border-radius: 12px; background: #0f172a; }
+    .table { width: 100%; border-collapse: collapse; font-size: .56em; }
+    .table th, .table td { border: 1px solid #cbd5e1; padding: 8px 10px; text-align: left; }
+    .table th { background: #f1f5f9; }
+    .ok { color: #047857; font-weight: 800; }
+    .warn { color: #b45309; font-weight: 800; }
+    .footer-note { margin-top: 22px; font-size: .48em; color: #64748b; }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } .wide { grid-column: auto; } }
   </style>
 </head>
 <body>
   <div class="reveal">
     <div class="slides">
       <section>
-        <p class="tag">Теория информации и протоколы безопасного обмена данными</p>
-        <h1>DES Crypto Lab</h1>
-        <p>Интерактивная демонстрация шифрования, дешифрования и пошагового разбора DES</p>
-        <p class="small">Автор: [ФИО] · Курс: ТиПБОД</p>
+        <p class="tag">ТиПБОД · практическая работа</p>
+        <h1>DES Crypto Lab: демонстрация блочного шифра</h1>
+        <p>Интерактивное веб-приложение для шифрования, дешифрования и пошагового разбора алгоритма DES.</p>
+        <p class="meta">Автор: [ФИО] · Курс: «Теория информации и протоколы безопасного обмена данными» · 2026</p>
+        <aside class="notes">На первом слайде обозначается тема, курс и назначение работы: не промышленная защита, а учебная визуализация полного цикла DES.</aside>
       </section>
 
       <section>
-        <h2>Постановка задачи</h2>
+        <h2>1. Постановка задачи</h2>
         <div class="grid">
           <div class="card">
-            <h3>Что такое DES</h3>
-            <p>DES шифрует 64-битные блоки с эффективным 56-битным ключом и 16 раундами сети Фейстеля.</p>
-          </div>
-          <div class="card">
-            <h3>Зачем изучать</h3>
-            <p>Алгоритм устарел для защиты реальных данных, но остаётся классической моделью блочного шифра, раундовых ключей и S-box.</p>
-          </div>
-        </div>
-      </section>
-
-      <section>
-        <h2>Архитектура ПО</h2>
-        <div class="grid">
-          <div class="card">
+            <h3>Что нужно было реализовать</h3>
             <ul>
-              <li><span class="accent">index.html</span> — интерфейс лаборатории</li>
-              <li><span class="accent">des.js</span> — таблицы DES и криптоядро</li>
-              <li><span class="accent">ui.js</span> — связывает ввод, трассу и визуализацию</li>
-              <li><span class="accent">styles.css</span> — тёмная тема и битовые блоки</li>
+              <li>Ввод 64-битного блока и 64-битного ключа.</li>
+              <li>Шифрование и дешифрование по DES.</li>
+              <li>Показ всех 16 раундов и подключей.</li>
+              <li>Образовательные подсказки по IP, E, P, PC-1, PC-2 и S-box.</li>
             </ul>
           </div>
-          <div class="mock">
-            <p class="mono small">input → normalize64 → IP → 16 rounds → FP</p>
-            <div class="bar"></div>
-            <p class="mono small">key → PC-1 → shifts → PC-2 → K1...K16</p>
-            <div class="bar"></div>
-            <p class="mono small">trace → round viewer → S-box highlight</p>
+          <div class="card">
+            <h3>Почему DES полезен для изучения</h3>
+            <p>DES уже не считается современным безопасным стандартом из-за малой длины ключа, но он хорошо показывает архитектуру блочного шифра: раунды, перестановки, нелинейную подстановку и обратимость сети Фейстеля.</p>
           </div>
         </div>
+        <p class="footer-note">Практический смысл работы: увидеть, как из простых операций над битами получается обратимое преобразование блока.</p>
       </section>
 
       <section>
-        <h2>Математическая основа</h2>
-        <div class="card">
-          <p class="mono">Lᵢ₊₁ = Rᵢ</p>
-          <p class="mono">Rᵢ₊₁ = Lᵢ XOR F(Rᵢ, Kᵢ)</p>
-          <p>Функция F расширяет R до 48 бит, смешивает с подключом, пропускает результат через 8 S-box и перестановку P.</p>
-          <div class="bits bits64"></div>
-        </div>
+        <h2>2. Архитектура приложения</h2>
+        <table class="table">
+          <thead>
+            <tr><th>Файл</th><th>Назначение</th><th>Почему вынесено отдельно</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="mono">index.html</td><td>Разметка интерфейса: вкладки, поля ввода, блоки результата.</td><td>Страница остаётся понятной и легко публикуется на GitHub Pages.</td></tr>
+            <tr><td class="mono">des.js</td><td>Криптографическое ядро: таблицы DES, ключи, раунды, S-box.</td><td>Алгоритм можно проверить отдельно от интерфейса.</td></tr>
+            <tr><td class="mono">ui.js</td><td>Связывает ввод пользователя, запуск DES и визуализацию трассы.</td><td>Вся логика отображения не смешивается с математикой алгоритма.</td></tr>
+            <tr><td class="mono">styles.css</td><td>Тёмная «крипто-лаборатория», сетки битов, таблицы S-box.</td><td>CSS можно менять без риска сломать DES.</td></tr>
+          </tbody>
+        </table>
+        <p class="footer-note">Зависимостей сборки нет: приложение запускается в браузере и подходит для статического хостинга.</p>
       </section>
 
       <section>
-        <h2>Сценарии использования</h2>
+        <h2>3. Математическая основа DES</h2>
         <div class="grid">
           <div class="card">
-            <h3>Быстрый режим</h3>
-            <p>Ввод 64-битного блока и ключа, мгновенный результат в hex, binary и ASCII.</p>
+            <h3>Сеть Фейстеля</h3>
+            <div class="formula mono">
+              Lᵢ₊₁ = Rᵢ<br>
+              Rᵢ₊₁ = Lᵢ XOR F(Rᵢ, Kᵢ)
+            </div>
+            <p class="small">Главное свойство: для дешифрования используется тот же алгоритм, но подключи идут в обратном порядке.</p>
           </div>
           <div class="card">
-            <h3>Обучение</h3>
-            <p>Просмотр каждого раунда, активных S-box, подключей и обратного порядка ключей при дешифровании.</p>
+            <h3>Функция F</h3>
+            <ul>
+              <li>Расширение E: 32 бита → 48 бит.</li>
+              <li>XOR с 48-битным подключом.</li>
+              <li>8 S-box: 48 бит → 32 бита.</li>
+              <li>Перестановка P для перемешивания результата.</li>
+            </ul>
+          </div>
+          <div class="card wide">
+            <h3>Генерация подключей</h3>
+            <p>Ключ проходит PC-1, где отбрасываются биты чётности. Затем половины C и D циклически сдвигаются по расписанию DES, после чего PC-2 формирует 16 подключей по 48 бит.</p>
           </div>
         </div>
       </section>
 
       <section>
-        <h2>Демонстрация интерфейса</h2>
-        <div class="mock">
-          <p class="mono small">Key: 133457799BBCDFF1</p>
-          <p class="mono small">Plain: 0123456789ABCDEF</p>
-          <div class="bar"></div>
-          <p class="mono">Cipher: <span class="accent">85E813540F0AB405</span></p>
-          <div class="bits bits64"></div>
+        <h2>4. Как работает пользовательский сценарий</h2>
+        <div class="grid">
+          <div class="card">
+            <h3>Шифрование</h3>
+            <ol>
+              <li>Пользователь вводит открытый блок и ключ.</li>
+              <li>Приложение нормализует данные до 64 бит.</li>
+              <li>Выполняются IP, 16 раундов и финальная перестановка.</li>
+              <li>Результат показывается в hex, binary и ASCII.</li>
+            </ol>
+          </div>
+          <div class="card">
+            <h3>Дешифрование</h3>
+            <ol>
+              <li>Вводится шифротекст и тот же ключ.</li>
+              <li>Подключи применяются в порядке K16 → K1.</li>
+              <li>На выходе восстанавливается исходный блок.</li>
+              <li>Раунды можно просматривать по одному.</li>
+            </ol>
+          </div>
+        </div>
+        <p class="footer-note">Пошаговый режим нужен не для скорости, а для объяснения: видно Lᵢ, Rᵢ, Kᵢ, E(Rᵢ), XOR, S-box и P.</p>
+      </section>
+
+      <section>
+        <h2>5. Проверка корректности и ограничения</h2>
+        <div class="grid">
+          <div class="card">
+            <h3>Тест-вектор</h3>
+            <p class="mono small">Plaintext: 0123456789ABCDEF</p>
+            <p class="mono small">Key: 133457799BBCDFF1</p>
+            <p class="mono small">Ciphertext: 85E813540F0AB405</p>
+            <p class="ok">Результат приложения совпадает с контрольным значением.</p>
+          </div>
+          <div class="card">
+            <h3>Ограничения DES</h3>
+            <ul>
+              <li>Эффективная длина ключа — 56 бит.</li>
+              <li>Для современных задач DES не применяется как безопасный стандарт.</li>
+              <li>В приложении добавлено предупреждение о слабых ключах.</li>
+              <li>Цель реализации — учебная демонстрация, а не промышленная криптобиблиотека.</li>
+            </ul>
+          </div>
         </div>
       </section>
 
       <section>
-        <h2>Заключение</h2>
+        <h2>6. Интерфейс приложения</h2>
+        <div class="grid">
+          <div class="card">
+            <h3>Что видно на экране</h3>
+            <ul>
+              <li>Слева: формат входа, блок данных, ключ, быстрые примеры.</li>
+              <li>Справа: результат, трасса раунда, активные S-box, все подключи.</li>
+              <li>Подсветка битов показывает, где правая половина изменилась.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <img class="screenshot" src="../assets/des-screenshot.png" alt="Скриншот интерфейса DES Crypto Lab">
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>7. Заключение</h2>
         <div class="card">
-          <p>Приложение показывает DES как работающий блочный шифр и как учебную модель: один и тот же ключ шифрует и дешифрует блок, а пошаговая трасса объясняет внутреннюю механику.</p>
-          <p>Ссылка на развёрнутое приложение: <span class="accent">[GitHub Pages URL]</span></p>
+          <p>В работе реализован полный цикл DES для одного 64-битного блока: шифрование, дешифрование, генерация подключей и пошаговая визуализация всех раундов. Приложение показывает, что DES обратим благодаря структуре Фейстеля, но одновременно демонстрирует его историческое ограничение — малое пространство ключей.</p>
+          <p>Публичная версия приложения: <a href="https://ulupapi.github.io/theory-of-info-hw/task3-des/index.html">ulupapi.github.io/theory-of-info-hw/task3-des/</a></p>
+          <p>Исходный код: <a href="https://github.com/ulupapi/theory-of-info-hw">github.com/ulupapi/theory-of-info-hw</a></p>
         </div>
       </section>
     </div>
   </div>
   <script src="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.js"></script>
-  <script>
-    document.querySelectorAll(".bits64").forEach(node => {
-      node.innerHTML = Array.from({ length: 64 }, () => "<div class='bit'></div>").join("");
-    });
-    Reveal.initialize({ hash: true, slideNumber: true, transition: "fade" });
-  </script>
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5/plugin/notes/notes.js"></script>
+  <script>Reveal.initialize({ hash: true, slideNumber: true, transition: "slide", plugins: [ RevealNotes ] });</script>
 </body>
 </html>

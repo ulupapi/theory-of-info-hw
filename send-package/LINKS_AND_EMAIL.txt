@@ -24,11 +24,17 @@ https://ulupapi.github.io/theory-of-info-hw/task1-eds-essay/essay.html
 Приложение Хаффмана:
 https://ulupapi.github.io/theory-of-info-hw/task2-huffman/huffman.html
 
+Демо-видео Хаффмана:
+https://ulupapi.github.io/theory-of-info-hw/videos/huffman-demo.mp4
+
 DES Crypto Lab:
 https://ulupapi.github.io/theory-of-info-hw/task3-des/index.html
 
 Презентация DES:
 https://ulupapi.github.io/theory-of-info-hw/task3-des/presentation.html
+
+Демо-видео DES:
+https://ulupapi.github.io/theory-of-info-hw/videos/des-demo.mp4
 
 Исходный код:
 https://github.com/ulupapi/theory-of-info-hw
