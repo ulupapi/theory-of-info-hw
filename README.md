@@ -93,7 +93,7 @@ python3 -m http.server 8765
 - экспорт результатов в JSON и CSV.
 
 Демо-скрипт: `task2-huffman/demo-script.md`
-Короткое демо-видео: `videos/huffman-demo.mp4`
+Короткое демо-видео без звука: `videos/huffman-demo.mp4`
 
 ### Задание 3: DES
 
@@ -121,7 +121,7 @@ Ciphertext: 85E813540F0AB405
 
 Презентация: `task3-des/presentation.html`  
 Демо-скрипт: `task3-des/demo-script.md`
-Короткое демо-видео: `videos/des-demo.mp4`
+Короткое демо-видео без звука: `videos/des-demo.mp4`
 
 ## Публикация на GitHub Pages за 5 минут
 
